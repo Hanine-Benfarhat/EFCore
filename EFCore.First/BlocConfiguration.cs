@@ -15,8 +15,5 @@ public class BlocConfiguration : IEntityTypeConfiguration<Bloc>
                .IsRequired()
                .HasMaxLength(100);
 
-        //builder.Property(e => e.NombreEmployee)
-        //       .HasCheckConstraint("CHK_NombreEmployee", "NombreEmployee >= 1 AND NombreEmployee <= 100");
-
     }
 }

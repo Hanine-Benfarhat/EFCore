@@ -2,6 +2,8 @@
 using EFCore.First.Entities;
 using Microsoft.EntityFrameworkCore;
 
+namespace EFCore.First;
+
 public class HRContext : DbContext
 {
 
@@ -36,12 +38,13 @@ public class HRContext : DbContext
             .HasIndex(e => e.Email)
             .IsUnique();
 
+
         modelBuilder.Entity<Departement>()
             .HasIndex(d => d.Name)
             .HasDatabaseName("IX_Department_Name")  // Nom de l'index (optionnel)
             .IsUnique();  // les valeurs dans cette colonne uniques
 
-        modelBuilder.ApplyConfiguration(new BlocConfiguration());
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(Program).Assembly);
 
     }
 }
