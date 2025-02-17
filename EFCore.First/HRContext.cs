@@ -11,10 +11,16 @@ public class HRContext : DbContext
     public DbSet<Departement> Departements { get; set; }   
     public DbSet<Bloc> Blocs { get; set; }
 
-    //
+
+    //CONFIGURATION ET LE CONNECTION STRING
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.UseSqlServer("Server=THE_HA9;Database=HRDatabase;Integrated Security=True;TrustServerCertificate=True;");
+    }
+    //CONSTRUCTEUR PUBLIC POUR LE CONTEXT
+    public HRContext(DbContextOptions<HRContext> options)
+        : base(options)
+    {
     }
 
     //Fluent API
