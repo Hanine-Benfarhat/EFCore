@@ -68,11 +68,11 @@ public class EmployeeService : IEmployeeService
             _dbcontext.SaveChanges();
             return true;
         }
-        catch (DbUpdateException ex)
+        catch (DbUpdateException)
         { 
             throw new Exception("Database update error occurred.");
         }
-        catch (Exception ex)
+        catch (Exception)
         { 
             throw;
         }

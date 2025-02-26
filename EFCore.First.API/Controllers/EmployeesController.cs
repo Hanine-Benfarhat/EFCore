@@ -41,6 +41,7 @@ public class EmployeesController : ControllerBase
             return StatusCode(500, "Internal server error, contact the admin");
         }
     }
+
     //DONE
     [HttpGet("{id}")]
     public IActionResult GetEmployee(int id) 
@@ -55,6 +56,7 @@ public class EmployeesController : ControllerBase
             return StatusCode(500, "Database error occurred while creating the employee.");
         }
     }
+
     //DONE
     [HttpPost]
     public IActionResult CreateEmployee([FromBody] EmployeeDTO employeeDTO) // from body : l'employee dans le corps de la requete
