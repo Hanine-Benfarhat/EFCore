@@ -1,8 +1,10 @@
 ﻿using EFCore.First.Contract;
 using EFCore.First.Entities;
+using EFCore.First.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static EFCore.First.Services.EmployeeService;
 
 namespace EFCore.First.API.Controllers;
 
@@ -12,11 +14,14 @@ namespace EFCore.First.API.Controllers;
 [ApiController]
 public class EmployeesController : ControllerBase
 {
-    //instancier le dbcontext
-    private readonly HRContext dbcontext; //READ ONLY POUR 
-    public EmployeesController(HRContext context)
+    private readonly HRContext _dbcontext; //READ ONLY POUR 
+    private readonly ILogger<EmployeesController> _logger;
+    private readonly IEmployeeService _employeeService;
+    public EmployeesController(HRContext context, ILogger<EmployeesController> logger, IEmployeeService employeeService)
     {
-        dbcontext = context;
+        _dbcontext = context;
+        _logger = logger;
+        _employeeService = employeeService;
     }
 
     [HttpGet]
@@ -24,11 +29,16 @@ public class EmployeesController : ControllerBase
     {
         try
         {
-            return Ok(dbcontext.Employees.ToList());
+            return Ok(_employeeService.GetAll());
         }
-        catch (DbUpdateException dbEx)
+        catch (ArgumentNullException)
         {
-            return StatusCode(500, "Database error occurred while creating the employee.");
+            _logger.LogWarning("Datbase con text was null!");
+            return StatusCode(400, "Service unavailable: Data problem");
+        }
+        catch (Exception)
+        {
+            return StatusCode(500, "Internal server error, contact the admin");
         }
     }
     //DONE
@@ -37,10 +47,10 @@ public class EmployeesController : ControllerBase
     {
         try
         {
-            var employee = dbcontext.Employees.Find(id);
+            var employee = _employeeService.Get(id);
             return employee is null ? NotFound() : Ok(employee);
         }
-        catch (DbUpdateException dbEx)
+        catch (DbUpdateException )
         {
             return StatusCode(500, "Database error occurred while creating the employee.");
         }
@@ -51,28 +61,28 @@ public class EmployeesController : ControllerBase
     {
         try
         {
-            if (employeeDTO is null)
-                return BadRequest("Veuillez entrer les données de l'employé.");
-
+            
             if (!ModelState.IsValid) // Automatically checks for validation
             {
                 return BadRequest(ModelState); // Returns detailed validation error messages
             }
-            var employee = new Employee
+            if(employeeDTO == null)
             {
-                Name = employeeDTO.Name,
-                Age = employeeDTO.Age,
-                Email = employeeDTO.Email,
-                DepartementID = employeeDTO.DepartementID,
-            };
-            dbcontext.Employees.Add(employee);
-            dbcontext.SaveChanges();
+                return BadRequest(ModelState);
+            }
+            var employee = _employeeService.Create(employeeDTO);
             return CreatedAtAction(nameof(GetEmployee), new { id = employee.Id }, employee); //pas compris
         }
-        catch (DbUpdateException dbEx)
+        catch (DbUpdateConcurrencyException)
         {
-            return StatusCode(500, "Database error occurred while creating the employee.");
+            _logger.LogWarning("Database concurrency exception");
+            return StatusCode(500, "Internal server error, try again");
         }
+        catch (DbUpdateException )
+        {
+            return StatusCode(500, "Internal server error, contact admin.");
+        }
+        
        
     }
     //DONE
@@ -82,23 +92,29 @@ public class EmployeesController : ControllerBase
     {
         try
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
             //verifier si l'employé existe?
-            var employee = dbcontext.Employees.Find(id);
-            if (employee is null)
-                return NotFound();
-            if (!ModelState.IsValid) // Automatically checks for validation
-            {
-                return BadRequest(ModelState); // Returns detailed validation error messages
-            }
-            employee.Name = updatedEmployee.Name;
-            employee.Age = updatedEmployee.Age;
-            employee.Email = updatedEmployee.Email;
-            dbcontext.SaveChanges();
+            var updated = _employeeService.UpdateEmployee(id, updatedEmployee);
+            if (!updated)
+                throw new ArgumentNullException(nameof(updatedEmployee)); //si updatedEmployee is null 
             return NoContent();
         }
-        catch (DbUpdateException dbEx)
+
+        catch (ArgumentNullException ex)
         {
-            return StatusCode(500, "Database error occurred while creating the employee.");
+            _logger.LogError(ex, "Updated employee object was null.");
+            throw;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Error while updating the employee in the database.");
+            throw new Exception("Database update error occurred.");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred while updating the employee.");
+            throw;
         }
     }
     //DONE
@@ -108,18 +124,16 @@ public class EmployeesController : ControllerBase
     {
         try
         {
-            //using var dbcontext = new HRContext();
-            var employee = dbcontext.Employees.Find(id);
-            if (employee is null)
-                return BadRequest("Employé n'exsite pas ");
+            bool deleted = _employeeService.DeleteEmployee(id);
+            if (!deleted)
+                return NotFound("L'employé n'existe pas.");
 
-            dbcontext.Employees.Remove(employee);
-            dbcontext.SaveChanges();
             return NoContent();
         }
-        catch (DbUpdateException dbEx)
+        catch (Exception ex)
         {
-            return StatusCode(500, "Database error occurred while creating the employee.");
+            _logger.LogError(ex, "An error occurred while deleting employee with ID {Id}.", id);
+            return StatusCode(500, "Internal server error. Please contact the administrator.");
         }
     }
     //DONE

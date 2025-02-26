@@ -7,11 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EFCore.First.Contract\EFCore.First.Contract.csproj" />
+    <ProjectReference Include="..\EFCore.First.Services\EFCore.First.Services.csproj" />
     <ProjectReference Include="..\EFCore.First\EFCore.First.csproj" />
   </ItemGroup>
 

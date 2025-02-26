@@ -6,6 +6,9 @@ namespace EFCore.First;
 
 public class HRContext : DbContext
 {
+    public HRContext(DbContextOptions options) : base(options)
+    {
+    }
 
     public DbSet<Employee> Employees { get; set; }
     public DbSet<Departement> Departements { get; set; }   
@@ -13,15 +16,11 @@ public class HRContext : DbContext
 
 
     //CONFIGURATION ET LE CONNECTION STRING
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        optionsBuilder.UseSqlServer("Server=THE_HA9;Database=HRDatabase;Integrated Security=True;TrustServerCertificate=True;");
-    }
-    //CONSTRUCTEUR PUBLIC POUR LE CONTEXT
-    public HRContext(DbContextOptions<HRContext> options)
-        : base(options)
-    {
-    }
+    //protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    //{
+    //    optionsBuilder.UseSqlServer("Server=THE_HA9;Database=HRDatabase;Integrated Security=True;TrustServerCertificate=True;");
+    //}
+   
 
     //Fluent API
     //OnModelCreating une méthode qui configure les relations entre les entités dans EF core
@@ -50,7 +49,7 @@ public class HRContext : DbContext
             .HasDatabaseName("IX_Department_Name")  // Nom de l'index (optionnel)
             .IsUnique();  // les valeurs dans cette colonne uniques
 
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(Program).Assembly);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(HRContext).Assembly);
 
     }
 }
