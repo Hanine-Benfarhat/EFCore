@@ -22,7 +22,7 @@ public class EmployeeService : IEmployeeService
         }
         catch (ArgumentNullException)
         {
-            Console.WriteLine("An error occurred while retrieving employees.");
+            _logger.LogError("An error occurred while retrieving employees.");
             return new List<Employee>();
         }
 
@@ -37,7 +37,7 @@ public class EmployeeService : IEmployeeService
         catch (Exception)
         {
 
-            Console.WriteLine("An error occurred while retrieving the employee.");
+            _logger.LogError("An error occurred while retrieving the employee.");
             return null;
         }
     }
@@ -59,16 +59,18 @@ public class EmployeeService : IEmployeeService
         }
         catch (DbUpdateConcurrencyException)
         {
-            throw new Exception("Database update error occurred.");
+            _logger.LogError("Database update concurrency error occurred.");
+            return null;
         }
         catch (DbUpdateException)
         {
-            throw new Exception("Database update error occurred.");
+            _logger.LogError("Database update error occurred.");
+            return null;
         }
         catch (Exception)
         {
 
-            Console.WriteLine("An error occurred while creating employee.");
+            _logger.LogError("An error occurred while creating employee.");
             return null;
         }
     }
@@ -90,16 +92,17 @@ public class EmployeeService : IEmployeeService
         }
         catch (DbUpdateConcurrencyException)
         {
-            throw new Exception("Database update error occurred.");
+            _logger.LogError("Database update concurrency error occurred.");
+            return false;
         }
         catch (DbUpdateException)
         {
-            throw new Exception("Database update error occurred.");
+            _logger.LogError("Database update error occurred.");
+            return false;
         }
         catch (Exception)
         {
-
-            Console.WriteLine("An error occurred while updating employees.");
+            _logger.LogError("An error occurred while updating employees.");
             return false;
         }
     }
@@ -118,11 +121,13 @@ public class EmployeeService : IEmployeeService
         }
         catch (DbUpdateConcurrencyException)
         {
-            throw new Exception("Database update error occurred.");
+            _logger.LogError("Database update concurrency error occurred.");
+            return false;
         }
         catch (DbUpdateException)
-        { 
-            throw new Exception("Database update error occurred.");
+        {
+            _logger.LogError("Database update error occurred.");
+            return false;
         }
         
     }

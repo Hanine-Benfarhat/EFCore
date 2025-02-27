@@ -78,6 +78,7 @@ public class EmployeesController : ControllerBase
         }
         catch (DbUpdateException )
         {
+            _logger.LogWarning("Database exception");
             return StatusCode(500, "Internal server error, contact admin.");
         }
         
@@ -101,19 +102,20 @@ public class EmployeesController : ControllerBase
             return NoContent();
         }
 
-        catch (ArgumentNullException ex)
+        catch (ArgumentNullException )
         {
-            _logger.LogError(ex, "Updated employee object was null.");
-            
+            _logger.LogError( "Updated employee object was null.");
+            return StatusCode(500, "Database update error. Please contact the administrator.");
+
         }
-        catch (DbUpdateException ex)
+        catch (DbUpdateException)
         {
-            _logger.LogError(ex, "Error while updating the employee in the database.");
+            _logger.LogError( "Error while updating the employee in the database.");
             return StatusCode(500, "Database update error. Please contact the administrator.");
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "An unexpected error occurred while updating the employee.");
+            _logger.LogError( "An unexpected error occurred while updating the employee.");
             return StatusCode(500, "Internal server error. Please contact the administrator.");
         }
     }
@@ -132,7 +134,7 @@ public class EmployeesController : ControllerBase
             _logger.LogInformation($"Employee with ID {id} deleted successfully");
             return NoContent();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _logger.LogError($"An error occurred while deleting employee with ID {id} .");
             return StatusCode(500, "Internal server error. Please contact the administrator.");
