@@ -1,9 +1,4 @@
-using EFCore.First;
-using EFCore.First.Services;
-using Microsoft.EntityFrameworkCore;
-
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 // Houni besh nconfigiriw el DI
 

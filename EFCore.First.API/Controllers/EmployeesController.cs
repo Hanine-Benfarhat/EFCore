@@ -1,12 +1,4 @@
-﻿using EFCore.First.Contract;
-using EFCore.First.Entities;
-using EFCore.First.Services;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using static EFCore.First.Services.EmployeeService;
-
-namespace EFCore.First.API.Controllers;
+﻿namespace EFCore.First.API.Controllers;
 
 //[ApiController] and[Route] Attributes: These attributes specify that this class is an API controller
 //and define the base route for all actions in the controller.
@@ -14,7 +6,7 @@ namespace EFCore.First.API.Controllers;
 [ApiController]
 public class EmployeesController : ControllerBase
 {
-    private readonly HRContext _dbcontext; //READ ONLY POUR 
+    private readonly HRContext _dbcontext; 
     private readonly ILogger<EmployeesController> _logger;
     private readonly IEmployeeService _employeeService;
     public EmployeesController(HRContext context, ILogger<EmployeesController> logger, IEmployeeService employeeService)
@@ -29,6 +21,7 @@ public class EmployeesController : ControllerBase
     {
         try
         {
+            _logger.LogInformation("fetching all employee");
             return Ok(_employeeService.GetAll());
         }
         catch (ArgumentNullException)
@@ -38,26 +31,26 @@ public class EmployeesController : ControllerBase
         }
         catch (Exception)
         {
+            _logger.LogError( "Error fetching employees");
             return StatusCode(500, "Internal server error, contact the admin");
         }
     }
 
-    //DONE
     [HttpGet("{id}")]
     public IActionResult GetEmployee(int id) 
     {
         try
         {
             var employee = _employeeService.Get(id);
-            return employee is null ? NotFound() : Ok(employee);
+            return employee is null ? NotFound($"Employee with ID {id} not found.") : Ok(employee);
         }
         catch (DbUpdateException )
         {
+            _logger.LogError( "Error fetching employee with ID {Id}", id);
             return StatusCode(500, "Database error occurred while creating the employee.");
         }
     }
 
-    //DONE
     [HttpPost]
     public IActionResult CreateEmployee([FromBody] EmployeeDTO employeeDTO) // from body : l'employee dans le corps de la requete
     {
@@ -66,14 +59,17 @@ public class EmployeesController : ControllerBase
             
             if (!ModelState.IsValid) // Automatically checks for validation
             {
+                _logger.LogWarning("Invalid employee data ");
                 return BadRequest(ModelState); // Returns detailed validation error messages
             }
             if(employeeDTO == null)
             {
+                _logger.LogWarning("Received a null employeeDTO");
                 return BadRequest(ModelState);
             }
             var employee = _employeeService.Create(employeeDTO);
-            return CreatedAtAction(nameof(GetEmployee), new { id = employee.Id }, employee); //pas compris
+            _logger.LogInformation("Employee created with ID {Id}", employee.Id);
+            return CreatedAtAction(nameof(GetEmployee), new { id = employee.Id }, employee); 
         }
         catch (DbUpdateConcurrencyException)
         {
@@ -87,7 +83,6 @@ public class EmployeesController : ControllerBase
         
        
     }
-    //DONE
 
     [HttpPut("{id}")]
     public  IActionResult UpdateEmployee(int id, [FromBody] EmployeeDTO updatedEmployee)
@@ -95,7 +90,10 @@ public class EmployeesController : ControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Invalid employee data ");
                 return BadRequest(ModelState);
+            }
             //verifier si l'employé existe?
             var updated = _employeeService.UpdateEmployee(id, updatedEmployee);
             if (!updated)
@@ -106,20 +104,19 @@ public class EmployeesController : ControllerBase
         catch (ArgumentNullException ex)
         {
             _logger.LogError(ex, "Updated employee object was null.");
-            throw;
+            
         }
         catch (DbUpdateException ex)
         {
             _logger.LogError(ex, "Error while updating the employee in the database.");
-            throw new Exception("Database update error occurred.");
+            return StatusCode(500, "Database update error. Please contact the administrator.");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unexpected error occurred while updating the employee.");
-            throw;
+            return StatusCode(500, "Internal server error. Please contact the administrator.");
         }
     }
-    //DONE
 
     [HttpDelete("{id}")]
     public IActionResult DeleteEmployee(int id)
@@ -128,15 +125,18 @@ public class EmployeesController : ControllerBase
         {
             bool deleted = _employeeService.DeleteEmployee(id);
             if (!deleted)
+            {
+                _logger.LogWarning($"Employee with ID {id} not found for deletion");
                 return NotFound("L'employé n'existe pas.");
-
+            }
+            _logger.LogInformation($"Employee with ID {id} deleted successfully");
             return NoContent();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while deleting employee with ID {Id}.", id);
+            _logger.LogError($"An error occurred while deleting employee with ID {id} .");
             return StatusCode(500, "Internal server error. Please contact the administrator.");
         }
     }
-    //DONE
+    
 }

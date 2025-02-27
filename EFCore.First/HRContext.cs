@@ -1,8 +1,4 @@
-﻿using EFCore.First;
-using EFCore.First.Entities;
-using Microsoft.EntityFrameworkCore;
-
-namespace EFCore.First;
+﻿namespace EFCore.First;
 
 public class HRContext : DbContext
 {
