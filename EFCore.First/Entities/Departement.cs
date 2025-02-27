@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EFCore.First.Entities;
+﻿namespace EFCore.First.Entities;
 public class Departement
 {
     [Key]
     public int DepartementID { get; set; }
 
     [Required]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
     [Required]
-    public string Code { get; set; }
+    public string Code { get; set; } = string.Empty ;
 
-    public List<Employee> Employees { get; set; } //relation one to many
+    public List<Employee>? Employees { get; set; } //relation one to many
 }

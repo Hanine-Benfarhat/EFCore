@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace EFCore.First.Contract;
+﻿namespace EFCore.First.Contract;
 
 public class DepartementDTO
 {
