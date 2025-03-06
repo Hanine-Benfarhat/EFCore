@@ -1,4 +1,6 @@
-﻿namespace EFCore.First.API.Controllers;
+﻿using EFCore.First.Entities;
+
+namespace EFCore.First.API.Controllers;
 
 //[ApiController] and[Route] Attributes: These attributes specify that this class is an API controller
 //and define the base route for all actions in the controller.
@@ -6,32 +8,34 @@
 [ApiController]
 public class EmployeesController : ControllerBase
 {
-    private readonly HRContext _dbcontext; 
     private readonly ILogger<EmployeesController> _logger;
     private readonly IEmployeeService _employeeService;
-    public EmployeesController(HRContext context, ILogger<EmployeesController> logger, IEmployeeService employeeService)
+    public EmployeesController(
+        ILogger<EmployeesController> logger,
+        IEmployeeService employeeService)
     {
-        _dbcontext = context;
         _logger = logger;
         _employeeService = employeeService;
     }
 
     [HttpGet]
-    public IActionResult GetEmployees()   //IActionResult un type flexible qui permet de renvoyer différents types de réponses
+    [ProducesResponseType(statusCode:400, type:typeof(string))]
+    [ProducesResponseType(statusCode: 200, type:typeof(List<Employee>))]
+    public IActionResult GetEmployees([FromServices] IEmployeeService employeeService2)   //IActionResult un type flexible qui permet de renvoyer différents types de réponses
     {
         try
         {
             _logger.LogInformation("fetching all employee");
             return Ok(_employeeService.GetAll());
         }
-        catch (ArgumentNullException)
+        catch (ArgumentNullException ex)
         {
-            _logger.LogWarning("Datbase con text was null!");
-            return StatusCode(400, "Service unavailable: Data problem");
+            _logger.LogWarning(ex, "Datbase con text was null!");
+            return BadRequest("Service unavailable: Data problem");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            _logger.LogError( "Error fetching employees");
+            _logger.LogError( ex,"Error fetching employees");
             return StatusCode(500, "Internal server error, contact the admin");
         }
     }
@@ -128,15 +132,15 @@ public class EmployeesController : ControllerBase
             bool deleted = _employeeService.DeleteEmployee(id);
             if (!deleted)
             {
-                _logger.LogWarning($"Employee with ID {id} not found for deletion");
+                _logger.LogWarning("Employee with ID {id} not found for deletion", id);
                 return NotFound("L'employé n'existe pas.");
             }
-            _logger.LogInformation($"Employee with ID {id} deleted successfully");
+            _logger.LogInformation("Employee with ID {id} deleted successfully", id);
             return NoContent();
         }
         catch (Exception)
         {
-            _logger.LogError($"An error occurred while deleting employee with ID {id} .");
+            _logger.LogError("An error occurred while deleting employee with ID {id} .", id);
             return StatusCode(500, "Internal server error. Please contact the administrator.");
         }
     }

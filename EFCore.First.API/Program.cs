@@ -1,17 +1,20 @@
-var builder = WebApplication.CreateBuilder(args);
-// Add services to the container.
-// Houni besh nconfigiriw el DI
+using EFCore.First.API.Controllers;
 
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Host.UseSerilog((context, loggerConfig) =>
+    loggerConfig.ReadFrom.Configuration(context.Configuration)
+);
+builder.Services.AddCarter();
+//builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<HRContext>(c => c.UseSqlServer("Server=THE_HA9;Database=HRDatabase;Integrated Security=True;TrustServerCertificate=True;"));
+builder.Services.AddDbContext<HRContext>(c =>
+    c.UseSqlServer("Server=THE_HA9;Database=HRDatabase;Integrated Security=True;TrustServerCertificate=True;"));
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -19,9 +22,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
+//app.UseAuthorization();
+//app.MapControllers();
+app.MapCarter();
+app.UseSerilogRequestLogging();
 app.Run();
+
+Log.CloseAndFlush();
