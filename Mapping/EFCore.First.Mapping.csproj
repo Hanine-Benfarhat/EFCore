@@ -7,7 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\EFCore.First.API\EFCore.First.API.csproj" />
     <ProjectReference Include="..\EFCore.First.Contract\EFCore.First.Contract.csproj" />
+    <ProjectReference Include="..\EFCore.First.Services\EFCore.First.Services.csproj" />
     <ProjectReference Include="..\EFCore.First\EFCore.First.csproj" />
   </ItemGroup>
 
