@@ -46,13 +46,7 @@ public class EmployeeService : IEmployeeService
     {
         try
         {
-            var employee = new Employee
-            {
-                Name = employeeDTO.Name,
-                Age = employeeDTO.Age,
-                Email = employeeDTO.Email,
-                DepartementID = employeeDTO.DepartementID,
-            };
+            var employee = employeeDTO.ToEntity();
             _dbcontext.Employees.Add(employee);
             _dbcontext.SaveChanges();
             return employee;
@@ -84,9 +78,7 @@ public class EmployeeService : IEmployeeService
             {
                 return false;
             }
-            employee.Name = employeeDTO.Name;
-            employee.Age = employeeDTO.Age;
-            employee.Email = employeeDTO.Email;
+            employee.UpdateFromDTO(employeeDTO);
             _dbcontext.SaveChanges();
             return true;
         }

@@ -7,6 +7,8 @@ builder.Host.UseSerilog((context, loggerConfig) =>
 );
 builder.Services.AddCarter();
 //builder.Services.AddControllers();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<HRContext>(c =>
@@ -26,6 +28,7 @@ app.UseHttpsRedirection();
 //app.MapControllers();
 app.MapCarter();
 app.UseSerilogRequestLogging();
+app.UseExceptionHandler();
 app.Run();
 
 Log.CloseAndFlush();
