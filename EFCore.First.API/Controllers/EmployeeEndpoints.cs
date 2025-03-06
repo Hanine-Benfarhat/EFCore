@@ -1,10 +1,4 @@
-﻿using EFCore.First.Contract;
-using EFCore.First.Entities;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore.Query;
-namespace EFCore.First.API.Controllers;
-
-
+﻿namespace EFCore.First.API.Controllers;
 public class EmployeesEndpoints : CarterModule
 {
     public EmployeesEndpoints()
@@ -60,10 +54,10 @@ public class EmployeesEndpoints : CarterModule
                 ? TypedResults.NotFound($"Employee with ID {id} not found.") 
                 : TypedResults.Ok(employee);
         }
-        catch (DbUpdateException)
+        catch (Exception ex)
         {
-            logger.Error("Error fetching employee with ID {Id}", id);
-            return TypedResults.Problem("An error occurred while fetching employees.",
+            logger.Error(ex, "Error fetching employee with ID {Id}", id);
+            return TypedResults.Problem("An error occurred while fetching employee.",
                 statusCode: 500);
         }
     }
@@ -101,14 +95,9 @@ public class EmployeesEndpoints : CarterModule
             return TypedResults.Created($"/employees/{employee.Id}", employee);
 
         }
-        catch (DbUpdateConcurrencyException)
+        catch (Exception ex)
         {
-            logger.Warning("Database concurrency exception");
-            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
-        }
-        catch (DbUpdateException)
-        {
-            logger.Warning("Database exception");
+            logger.Warning(ex, "Database exception");
             return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
         }
 
@@ -145,19 +134,15 @@ public class EmployeesEndpoints : CarterModule
             return TypedResults.NoContent();
         }
 
-        catch (ArgumentNullException)
+        catch (ArgumentNullException ex)
         {
-            logger.Error("Updated employee object was null.");
-            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
+            logger.Error(ex , "Updated employee object was null.");
+            return TypedResults.BadRequest("Null.");
         }
-        catch (DbUpdateException)
+        
+        catch (Exception ex)
         {
-            logger.Error("Error while updating the employee in the database.");
-            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
-        }
-        catch (Exception)
-        {
-            logger.Error("An unexpected error occurred while updating the employee.");
+            logger.Error(ex, "An unexpected error occurred while updating the employee.");
             return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
         }
     }
@@ -178,9 +163,9 @@ public class EmployeesEndpoints : CarterModule
             logger.Information("Employee with ID {id} deleted successfully", id);
             return TypedResults.NoContent();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            logger.Error("An error occurred while deleting employee with ID {id} .", id);
+            logger.Error(ex , "An error occurred while deleting employee with ID {id} .", id);
             return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
         }
     }

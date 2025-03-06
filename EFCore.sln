@@ -10,6 +10,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.First.Contract", "EFCore.First.Contract\EFCore.First.Contract.csproj", "{6F1B898B-0454-46F5-A218-F779F5FAA84B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EFCore.First.Services", "EFCore.First.Services\EFCore.First.Services.csproj", "{C88A831B-B012-4FB5-981B-52E373FD5204}"
+	ProjectSection(ProjectDependencies) = postProject
+		{6F1B898B-0454-46F5-A218-F779F5FAA84B} = {6F1B898B-0454-46F5-A218-F779F5FAA84B}
+		{D6842EDA-DF0E-4896-BCE3-206B69268418} = {D6842EDA-DF0E-4896-BCE3-206B69268418}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
