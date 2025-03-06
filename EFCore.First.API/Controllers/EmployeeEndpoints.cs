@@ -4,7 +4,6 @@ public class EmployeesEndpoints : CarterModule
     public EmployeesEndpoints()
         :base("api/employees")
     {
-
     }
     public override void AddRoutes( IEndpointRouteBuilder app)
     {
@@ -22,19 +21,9 @@ public class EmployeesEndpoints : CarterModule
         IEmployeeService employeeService,
         Serilog.ILogger logger)
     {
-        try
-        {
             logger.Information("Fetching all employees");
             var employees = employeeService.GetAll(); // Assuming GetAllAsync is an asynchronous method
             return TypedResults.Ok(employees);
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex, "Error fetching employees");
-            return TypedResults.Problem(
-                detail: "An error occurred while fetching employees.",
-            statusCode: 500);
-        }
     }
 
 
@@ -47,19 +36,12 @@ public class EmployeesEndpoints : CarterModule
         IEmployeeService employeeService
         )
     {
-        try
-        {
-            var employee = employeeService.Get(id);
+        var employee = employeeService.Get(id);
             return employee is null 
                 ? TypedResults.NotFound($"Employee with ID {id} not found.") 
                 : TypedResults.Ok(employee);
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex, "Error fetching employee with ID {Id}", id);
-            return TypedResults.Problem("An error occurred while fetching employee.",
-                statusCode: 500);
-        }
+        
+        
     }
 
     public static Results<BadRequest<string>, Created<Employee>, ProblemHttpResult> CreateEmployee(
@@ -67,8 +49,7 @@ public class EmployeesEndpoints : CarterModule
         IEmployeeService employeeService,
         Serilog.ILogger logger)
     {
-        try
-        {
+    
             if (employeeDTO == null)
             {
                 logger.Warning("Received a null employeeDTO");
@@ -93,15 +74,6 @@ public class EmployeesEndpoints : CarterModule
             var employee = employeeService.Create(employeeDTO);
             logger.Information("Employee created with ID {Id}", employee.Id);
             return TypedResults.Created($"/employees/{employee.Id}", employee);
-
-        }
-        catch (Exception ex)
-        {
-            logger.Warning(ex, "Database exception");
-            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
-        }
-
-
     }
 
     public static Results<BadRequest<string>, Created<Employee>, ProblemHttpResult , NoContent> UpdateEmployee(
@@ -139,12 +111,7 @@ public class EmployeesEndpoints : CarterModule
             logger.Error(ex , "Updated employee object was null.");
             return TypedResults.BadRequest("Null.");
         }
-        
-        catch (Exception ex)
-        {
-            logger.Error(ex, "An unexpected error occurred while updating the employee.");
-            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
-        }
+       
     }
 
     public static Results<NotFound<string>, NoContent, ProblemHttpResult> DeleteEmployee(
@@ -152,8 +119,6 @@ public class EmployeesEndpoints : CarterModule
         Serilog.ILogger logger,
         IEmployeeService employeeService)
     {
-        try
-        {
             bool deleted = employeeService.DeleteEmployee(id);
             if (!deleted)
             {
@@ -162,12 +127,7 @@ public class EmployeesEndpoints : CarterModule
             }
             logger.Information("Employee with ID {id} deleted successfully", id);
             return TypedResults.NoContent();
-        }
-        catch (Exception ex)
-        {
-            logger.Error(ex , "An error occurred while deleting employee with ID {id} .", id);
-            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
-        }
+       
     }
 
 }
