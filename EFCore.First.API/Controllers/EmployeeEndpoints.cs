@@ -1,4 +1,6 @@
 ﻿using EFCore.First.Contract;
+using EFCore.First.Entities;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore.Query;
 namespace EFCore.First.API.Controllers;
 
@@ -20,7 +22,9 @@ public class EmployeesEndpoints : CarterModule
     //private readonly HRContext _dbcontext; 
     //private readonly ILogger<EmployeesController> _logger;
 
-    public static IResult GetEmployees(
+    [ProducesResponseType(typeof(List<Employee>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public static Results<Ok<List<Employee>>, ProblemHttpResult> GetEmployees(
         IEmployeeService employeeService,
         Serilog.ILogger logger)
     {
@@ -28,18 +32,22 @@ public class EmployeesEndpoints : CarterModule
         {
             logger.Information("Fetching all employees");
             var employees = employeeService.GetAll(); // Assuming GetAllAsync is an asynchronous method
-            return Results.Ok(employees);
+            return TypedResults.Ok(employees);
         }
         catch (Exception ex)
         {
             logger.Error(ex, "Error fetching employees");
-            return Results.Problem("An error occurred while fetching employees.", statusCode: 500);
+            return TypedResults.Problem(
+                detail: "An error occurred while fetching employees.",
+            statusCode: 500);
         }
     }
 
 
-
-    public static IResult GetEmployee(
+    [ProducesResponseType(typeof(Employee), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+    public static Results<Ok<Employee>, NotFound<string> , ProblemHttpResult> GetEmployee(
         int id,
         Serilog.ILogger logger,
         IEmployeeService employeeService
@@ -48,16 +56,19 @@ public class EmployeesEndpoints : CarterModule
         try
         {
             var employee = employeeService.Get(id);
-            return employee is null ? Results.NotFound($"Employee with ID {id} not found.") : Results.Ok(employee);
+            return employee is null 
+                ? TypedResults.NotFound($"Employee with ID {id} not found.") 
+                : TypedResults.Ok(employee);
         }
         catch (DbUpdateException)
         {
             logger.Error("Error fetching employee with ID {Id}", id);
-            return Results.Problem("An error occurred while fetching employees.", statusCode: 500);
+            return TypedResults.Problem("An error occurred while fetching employees.",
+                statusCode: 500);
         }
     }
 
-    public static IResult CreateEmployee(
+    public static Results<BadRequest<string>, Created<Employee>, ProblemHttpResult> CreateEmployee(
         [FromBody] EmployeeDTO employeeDTO,
         IEmployeeService employeeService,
         Serilog.ILogger logger)
@@ -67,7 +78,7 @@ public class EmployeesEndpoints : CarterModule
             if (employeeDTO == null)
             {
                 logger.Warning("Received a null employeeDTO");
-                return Results.BadRequest();
+                return TypedResults.BadRequest( "Employee data cannot be null." );
             }
             //manual validation of modelstate
             var validationErrors = new List<string>();
@@ -83,28 +94,28 @@ public class EmployeesEndpoints : CarterModule
             if (validationErrors.Any())
             {
                 logger.Warning("Invalid employee data: {Errors}", string.Join(", ", validationErrors));
-                return Results.BadRequest(new { Errors = validationErrors });
+                return TypedResults.BadRequest(string.Join(", ", validationErrors));
             }
             var employee = employeeService.Create(employeeDTO);
             logger.Information("Employee created with ID {Id}", employee.Id);
-            return Results.Created($"/employees/{employee.Id}", employee);
+            return TypedResults.Created($"/employees/{employee.Id}", employee);
 
         }
         catch (DbUpdateConcurrencyException)
         {
             logger.Warning("Database concurrency exception");
-            return Results.Problem("An error occurred while fetching employees.", statusCode: 500);
+            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
         }
         catch (DbUpdateException)
         {
             logger.Warning("Database exception");
-            return Results.Problem("An error occurred while fetching employees.", statusCode: 500);
+            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
         }
 
 
     }
 
-    public static IResult UpdateEmployee(
+    public static Results<BadRequest<string>, Created<Employee>, ProblemHttpResult , NoContent> UpdateEmployee(
         int id,
         [FromBody] EmployeeDTO updatedEmployee,
         Serilog.ILogger logger,
@@ -125,33 +136,33 @@ public class EmployeesEndpoints : CarterModule
             if (validationErrors.Any())
             {
                 logger.Warning("Invalid employee data: {Errors}", string.Join(", ", validationErrors));
-                return Results.BadRequest(new { Errors = validationErrors });
+                return TypedResults.BadRequest(string.Join(", ", validationErrors));
             }
             //verifier si l'employé existe?
             var updated = employeeService.UpdateEmployee(id, updatedEmployee);
             if (!updated)
                 throw new ArgumentNullException(nameof(updatedEmployee)); //si updatedEmployee is null 
-            return Results.NoContent();
+            return TypedResults.NoContent();
         }
 
         catch (ArgumentNullException)
         {
             logger.Error("Updated employee object was null.");
-            return Results.Problem("An error occurred while fetching employees.", statusCode: 500);
+            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
         }
         catch (DbUpdateException)
         {
             logger.Error("Error while updating the employee in the database.");
-            return Results.Problem("An error occurred while fetching employees.", statusCode: 500);
+            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
         }
         catch (Exception)
         {
             logger.Error("An unexpected error occurred while updating the employee.");
-            return Results.Problem("An error occurred while fetching employees.", statusCode: 500);
+            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
         }
     }
 
-    public static IResult DeleteEmployee(
+    public static Results<NotFound<string>, NoContent, ProblemHttpResult> DeleteEmployee(
         int id,
         Serilog.ILogger logger,
         IEmployeeService employeeService)
@@ -162,15 +173,15 @@ public class EmployeesEndpoints : CarterModule
             if (!deleted)
             {
                 logger.Warning("Employee with ID {id} not found for deletion", id);
-                return Results.NotFound("L'employé n'existe pas.");
+                return TypedResults.NotFound("L'employé n'existe pas.");
             }
             logger.Information("Employee with ID {id} deleted successfully", id);
-            return Results.NoContent();
+            return TypedResults.NoContent();
         }
         catch (Exception)
         {
             logger.Error("An error occurred while deleting employee with ID {id} .", id);
-            return Results.Problem("An error occurred while fetching employees.", statusCode: 500);
+            return TypedResults.Problem("An error occurred while fetching employees.", statusCode: 500);
         }
     }
 

@@ -6,13 +6,4 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\EFCore.First.Contract\EFCore.First.Contract.csproj" />
-	  <ProjectReference Include="..\EFCore.First\EFCore.First.csproj" />
-  </ItemGroup>
-
 </Project>
